@@ -1,11 +1,186 @@
 <!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CPT Open House Report</title>
 
-<html>
-   <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-      <base target="_top">
-   </head>
-   <body>
-      <iframe style="position: absolute;top: 0;left: 0;width: 100%;height: 100%;border: 0;" src="https://script.google.com/a/macros/cpt.ac.th/s/AKfycbyVJAGstBUiOmJFhC83NCs_DRlqYCcX_w6dp24rGs0Xz7TH5pefqSPjFEIARgacEKjZ/exec"></iframe>
-   </body>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: url('https://your-image-url.com/background.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+        h2 {
+            color: white;
+            background: rgba(0, 123, 255, 0.8);
+            padding: 10px;
+            display: inline-block;
+            border-radius: 8px;
+        }
+        .table {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .btn-success {
+            font-weight: bold;
+            padding: 6px 12px;
+        }
+        /* โลโก้ 3D หมุนแนวนอน */
+        .logo-container {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            perspective: 500px;
+        }
+        .rotating-logo {
+            width: 80px;
+            height: auto;
+            transform-origin: center;
+            animation: flip3D 3s ease-in-out infinite alternate;
+        }
+        @keyframes flip3D {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(180deg); }
+        }
+        /* แสดง PDF */
+        iframe {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+        }
+    </style>
+
+    <script>
+        function loadData() {
+            google.script.run.withSuccessHandler(showData).getSheetData();
+        }
+
+        function showData(data) {
+            let table = `<div class="table-responsive"><table class="table table-bordered table-striped table-hover">`;
+            
+            // หัวตาราง
+            table += `
+                <thead class="table-primary">
+                    <tr>
+                        <th>รหัสนักเรียน</th>
+                        <th>ชื่อเต็ม</th>
+                        <th>ชั้น</th>
+                        <th>สรุปจำนวนกิจกรรม</th>
+                        <th>เกียรติบัตร</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            data.forEach(row => {
+                let studentID = row[0];
+                let fullName = row[1];
+                let grade = row[2];
+                let activityCount = row[3];
+
+                let certificateButton = "";
+                if (activityCount >= 10) {
+                    certificateButton = `<button class="btn btn-success btn-sm" onclick="downloadCertificate('${studentID}', '${fullName}', '${grade}')">
+                        ดาวน์โหลดเกียรติบัตร
+                    </button>`;
+                }
+
+                table += `<tr>
+                            <td>${studentID}</td>
+                            <td>${fullName}</td>
+                            <td>${grade}</td>
+                            <td>${activityCount}</td>
+                            <td>${certificateButton}</td>
+                        </tr>`;
+            });
+
+            table += `</tbody></table></div>`;
+            document.getElementById("output").innerHTML = table;
+        }
+
+  function downloadCertificate(studentID, fullName, grade) {
+    // เปิด Modal Progress
+    let progressModal = new bootstrap.Modal(document.getElementById('progressModal'));
+    progressModal.show();
+
+    let progress = 0;
+    document.getElementById("progressBar").style.width = "0%";
+    document.getElementById("progressText").innerText = "กำลังดำเนินการ 0%";
+    
+    // อัปเดต Progress Bar ทุก 500ms (3 - 6 วินาที)
+    let interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 10) + 5; // เพิ่มทีละ 5-15%
+      if (progress >= 100) progress = 100;
+      document.getElementById("progressBar").style.width = progress + "%";
+      document.getElementById("progressText").innerText = `กำลังดำเนินการ ${progress}%`;
+
+      if (progress >= 100) clearInterval(interval);
+    }, 500);
+
+    // เรียก API สร้างเกียรติบัตร
+    google.script.run.withSuccessHandler(url => {
+      clearInterval(interval);
+      progressModal.hide(); // ซ่อน Modal เมื่อโหลดเสร็จ
+      
+      // เปิดไฟล์ PDF ในแท็บใหม่
+      window.open(url, "_blank"); 
+    }).generateCertificate(studentID, fullName, grade);
+  }
+
+
+        function showPDF(pdfUrl) {
+            document.getElementById("pdfFrame").src = pdfUrl;
+            document.getElementById("downloadBtn").href = pdfUrl;
+            document.getElementById("downloadBtn").style.display = "block";
+        }
+    </script>
+</head>
+<body onload="loadData()" class="bg-light">
+    <div class="container mt-5">
+        <h2 class="text-center text-white p-3 rounded shadow bg-primary">CPT Open House Report</h2>
+
+        <!-- โลโก้หมุนแบบ 3D -->
+        <div class="logo-container">
+            <img src="https://img5.pic.in.th/file/secure-sv1/LOGOCPT.png" alt="Logo" class="rotating-logo">
+        </div>
+
+        <div id="output" class="mt-4 text-center">กำลังโหลดข้อมูล...</div>
+
+
+
+        <br>
+        <a id="downloadBtn" href="#" style="display: none; font-size: 18px; padding: 10px; background: blue; color: white; text-decoration: none;">
+            📥 ดาวน์โหลดเกียรติบัตร
+        </a>
+    </div>
+    
+<!-- เพิ่ม Modal สำหรับแสดงเปอร์เซ็นต์โหลด -->
+<div class="modal fade" id="progressModal" tabindex="-1" aria-labelledby="progressModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="progressModalLabel">กำลังสร้างเกียรติบัตร...</h5>
+      </div>
+      <div class="modal-body">
+        <div class="progress">
+          <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+               role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+          </div>
+        </div>
+        <p class="text-center mt-2" id="progressText">โปรดรอสักครู่...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>
