@@ -1,0 +1,37 @@
+<style>
+
+  body {
+  background: url('https://your-image-url.com/background.jpg') no-repeat center center fixed;
+  background-size: cover;
+}
+
+h2 {
+  color: white;
+  background: rgba(0, 123, 255, 0.8);
+  padding: 10px;
+  display: inline-block;
+  border-radius: 8px;
+}
+
+.table {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th {
+  font-size: 18px;
+}
+
+td {
+  font-size: 16px;
+  color: #333;
+}
+
+.btn-success {
+  font-weight: bold;
+  padding: 6px 12px;
+}
+
+
+</style>
